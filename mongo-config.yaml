@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  mongo-url: mongo-service #Der Key ist hierbei benannt mit mongo-url und das Paar ist der Service der Datenbank (Service als permanenter Zugangspunkt) mit dem gleichen Namen "mongo-service"

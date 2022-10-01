@@ -1,0 +1,45 @@
+apiVersion: apps/v1 #Deployment der Mongo Datenbank
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+spec:
+  replicas: 1 #Datenbanken werden nicht im Deployment durch Replicas abgesichert, sondern durch die Verwendung von Statefulsets
+  selector:
+    matchLabels:
+      app: mongo
+  template: #Hier ist die Pod Konfiguration
+    metadata:
+      labels:
+        app: mongo #Name des Pods
+    spec:
+      containers:
+        - name: mongo #Name der Container Con100, Con101, Con102 usw.
+          image: mongo:5
+          ports:
+            - containerPort: 27017 #Ist im Image festgelegt
+          env: #Angabe von Umgebungesvariablen die Datenbank benötigt. Für MongoDb sind das folgende
+            - name: MONGO_INITDB_ROOT_USERNAME #Eine Definition dieser Umgebungsvariablen erwartet MongoDb
+              #value: Man kann den Username mit "value" setzen oder mit dem erstellten Secret arbeiten
+              valueFrom: #Value von einem secret holen
+                secretKeyRef:
+                  name: mongo-secret #Name des Secrets
+                  key: mongo-user #Name des festgelegten Users
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec: #Service spezifische Eigenschaften
+  selector:
+    app: mongo #Hier wird der Name des Deployment, also der Mongo-Db angegeben -> Sodass der Service weiß, an welchen Pod/Deployment er weiterleiten muss
+  ports:
+    - protocol: TCP
+      port: 27017 #Kann jeder Port sein, best practice ist allerding den gleichen Port zu nehmen unterdem der DB-Container erreicht werden kann
+      targetPort: 27017 #Target Port, sodass der Service weiß an welchen Port er die Datenbank als Container erreichen kann
